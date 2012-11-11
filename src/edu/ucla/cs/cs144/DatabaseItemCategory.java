@@ -1,6 +1,6 @@
 package edu.ucla.cs.cs144;
 
-public class ItemCategory {
+public class DatabaseItemCategory {
 	String itemID;
 	int categoryID;
 
@@ -8,7 +8,7 @@ public class ItemCategory {
 	 * @param itemID
 	 * @param categoryID
 	 */
-	public ItemCategory(String itemID, int categoryID) {
+	public DatabaseItemCategory(String itemID, int categoryID) {
 		super();
 		this.itemID = itemID;
 		this.categoryID = categoryID;
@@ -37,7 +37,7 @@ public class ItemCategory {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		ItemCategory other = (ItemCategory) obj;
+		DatabaseItemCategory other = (DatabaseItemCategory) obj;
 		if (categoryID != other.categoryID)
 			return false;
 		if (itemID == null) {

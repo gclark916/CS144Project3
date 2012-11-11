@@ -1,24 +1,38 @@
 package edu.ucla.cs.cs144;
 
 public class EbayUser {
-	private String userID;
-	private String rating;
-	private String country;
-	private String location;
+	String id;
+	int rating;
+	String country;
+	String location;
 	
 	/**
-	 * @param userID
+	 * @param id
 	 * @param rating
 	 * @param country
 	 * @param location
 	 */
-	public EbayUser(String userID, String rating, String country,
-			String location) {
+	public EbayUser(String id, int rating, String country, String location) {
 		super();
-		this.userID = userID;
+		this.id = id;
 		this.rating = rating;
 		this.country = country;
 		this.location = location;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((country == null) ? 0 : country.hashCode());
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		result = prime * result
+				+ ((location == null) ? 0 : location.hashCode());
+		result = prime * result + rating;
+		return result;
 	}
 
 	/* (non-Javadoc)
@@ -38,41 +52,20 @@ public class EbayUser {
 				return false;
 		} else if (!country.equals(other.country))
 			return false;
+		if (id == null) {
+			if (other.id != null)
+				return false;
+		} else if (!id.equals(other.id))
+			return false;
 		if (location == null) {
 			if (other.location != null)
 				return false;
 		} else if (!location.equals(other.location))
 			return false;
-		if (rating == null) {
-			if (other.rating != null)
-				return false;
-		} else if (!rating.equals(other.rating))
-			return false;
-		if (userID == null) {
-			if (other.userID != null)
-				return false;
-		} else if (!userID.equals(other.userID))
+		if (rating != other.rating)
 			return false;
 		return true;
 	}
-
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((country == null) ? 0 : country.hashCode());
-		result = prime * result
-				+ ((location == null) ? 0 : location.hashCode());
-		result = prime * result + ((rating == null) ? 0 : rating.hashCode());
-		result = prime * result + ((userID == null) ? 0 : userID.hashCode());
-		return result;
-	}
 	
-	public String toCSVString()
-	{
-		return String.format("%s,%s,%s,%s\n", userID, rating, country, location);
-	}
+	
 }

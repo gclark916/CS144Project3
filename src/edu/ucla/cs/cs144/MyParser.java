@@ -175,11 +175,11 @@ class MyParser {
     /* Process one items-???.xml file.
      */
     static void processFile(File xmlFile, 
-    		Set<EbayUser> ebayUserSet, 
-    		Map<String, Category> categoryMap, 
-    		Set<Item> itemSet, 
-    		Set<ItemCategory> itemCategorySet, 
-    		Set<Bid> bidSet) {
+    		Set<DatabaseEbayUser> ebayUserSet, 
+    		Map<String, DatabaseCategory> categoryMap, 
+    		Set<DatabaseItem> itemSet, 
+    		Set<DatabaseItemCategory> itemCategorySet, 
+    		Set<DatabaseBid> bidSet) {
         Document doc = null;
         try {
             doc = builder.parse(xmlFile);
@@ -231,11 +231,11 @@ class MyParser {
         	String sellerRating = seller.getAttribute("Rating");
         	
         	// Create EbayUser object and add to set
-        	EbayUser sellerObject = new EbayUser(sellerID, sellerRating, sellerCountry, sellerLocation);
+        	DatabaseEbayUser sellerObject = new DatabaseEbayUser(sellerID, sellerRating, sellerCountry, sellerLocation);
         	ebayUserSet.add(sellerObject);
         	
         	// Create Item object and add to set
-        	Item itemObject = new Item(itemID, name, buyNowPrice, minimumBid, startTime, endTime, description, sellerID); 
+        	DatabaseItem itemObject = new DatabaseItem(itemID, name, buyNowPrice, minimumBid, startTime, endTime, description, sellerID); 
         	itemSet.add(itemObject);
         	
         	// Parse categories
@@ -250,18 +250,18 @@ class MyParser {
         		// Create Category object and add to map
         		if (categoryMap.containsKey(categoryName))
         		{
-        			Category categoryObject = categoryMap.get(categoryName);
+        			DatabaseCategory categoryObject = categoryMap.get(categoryName);
         			categoryID = categoryObject.categoryID;
         		}
         		else
         		{
         			categoryID = categoryMap.size();
-        			Category categoryObject = new Category(categoryID, categoryName);
+        			DatabaseCategory categoryObject = new DatabaseCategory(categoryID, categoryName);
         			categoryMap.put(categoryName, categoryObject);
         		}
         		
         		// Create ItemCategory object and add to set
-        		ItemCategory itemCategoryObject = new ItemCategory(itemID, categoryID);
+        		DatabaseItemCategory itemCategoryObject = new DatabaseItemCategory(itemID, categoryID);
         		itemCategorySet.add(itemCategoryObject);
         	}
         	
@@ -284,11 +284,11 @@ class MyParser {
             	String bidderCountry = StringEscapeUtils.escapeCsv(getElementTextByTagNameNR(bidder, "Country"));
         		
         		// Create EbayUser object and add to set
-        		EbayUser bidderObject = new EbayUser(bidderID, bidderRating, bidderCountry, bidderLocation);
+        		DatabaseEbayUser bidderObject = new DatabaseEbayUser(bidderID, bidderRating, bidderCountry, bidderLocation);
         		ebayUserSet.add(bidderObject);
         		
         		// Create Bid object and add to set
-        		Bid bidObject = new Bid(bidSet.size(), itemID, bidderID, bidTime, bidAmount);
+        		DatabaseBid bidObject = new DatabaseBid(bidSet.size(), itemID, bidderID, bidTime, bidAmount);
         		bidSet.add(bidObject);
         	}
         }
@@ -320,11 +320,11 @@ class MyParser {
             System.exit(2);
         }
         
-        Set<EbayUser> ebayUserSet = new HashSet<EbayUser>();
-        Map<String, Category> categoryMap = new HashMap<String, Category>();
-        Set<Item> itemSet = new HashSet<Item>();
-        Set<ItemCategory> itemCategorySet = new HashSet<ItemCategory>();
-        Set<Bid> bidSet = new HashSet<Bid>();
+        Set<DatabaseEbayUser> ebayUserSet = new HashSet<DatabaseEbayUser>();
+        Map<String, DatabaseCategory> categoryMap = new HashMap<String, DatabaseCategory>();
+        Set<DatabaseItem> itemSet = new HashSet<DatabaseItem>();
+        Set<DatabaseItemCategory> itemCategorySet = new HashSet<DatabaseItemCategory>();
+        Set<DatabaseBid> bidSet = new HashSet<DatabaseBid>();
         
         /* Process all files listed on command line. */
         for (int i = 0; i < args.length; i++) {
@@ -336,10 +336,10 @@ class MyParser {
 		try {
 			FileWriter ebayUserStream = new FileWriter("EbayUser.csv");
 	        BufferedWriter ebayUserWriter = new BufferedWriter(ebayUserStream);
-	        Iterator<EbayUser> ebayUserIterator = ebayUserSet.iterator();
+	        Iterator<DatabaseEbayUser> ebayUserIterator = ebayUserSet.iterator();
 	        while (ebayUserIterator.hasNext())
 	        {
-	        	EbayUser user = ebayUserIterator.next();
+	        	DatabaseEbayUser user = ebayUserIterator.next();
 	        	ebayUserWriter.write(user.toCSVString()); 
 	        }
 	        ebayUserWriter.close();
@@ -347,11 +347,11 @@ class MyParser {
 	        
 	        FileWriter categoryStream = new FileWriter("Category.csv");
 	        BufferedWriter categoryWriter = new BufferedWriter(categoryStream);
-	        Collection<Category> categoryCollection = categoryMap.values();
-	        Iterator<Category> categoryIterator = categoryCollection.iterator();
+	        Collection<DatabaseCategory> categoryCollection = categoryMap.values();
+	        Iterator<DatabaseCategory> categoryIterator = categoryCollection.iterator();
 	        while (categoryIterator.hasNext())
 	        {
-	        	Category category = categoryIterator.next();
+	        	DatabaseCategory category = categoryIterator.next();
 	        	categoryWriter.write(category.toCSVString()); 	
 	        }
 	        categoryWriter.close();
@@ -359,10 +359,10 @@ class MyParser {
 	        
 	        FileWriter itemStream = new FileWriter("Item.csv");
 	        BufferedWriter itemWriter = new BufferedWriter(itemStream);
-	        Iterator<Item> itemIterator = itemSet.iterator();
+	        Iterator<DatabaseItem> itemIterator = itemSet.iterator();
 	        while (itemIterator.hasNext())
 	        {
-	        	Item item = itemIterator.next();
+	        	DatabaseItem item = itemIterator.next();
 	        	itemWriter.write(item.toCSVString()); 	
 	        }
 	        itemWriter.close();
@@ -370,10 +370,10 @@ class MyParser {
 	        
 	        FileWriter itemCategoryStream = new FileWriter("ItemCategory.csv");
 	        BufferedWriter itemCategoryWriter = new BufferedWriter(itemCategoryStream);
-	        Iterator<ItemCategory> itemCategoryIterator = itemCategorySet.iterator();
+	        Iterator<DatabaseItemCategory> itemCategoryIterator = itemCategorySet.iterator();
 	        while (itemCategoryIterator.hasNext())
 	        {
-	        	ItemCategory itemCategory = itemCategoryIterator.next();
+	        	DatabaseItemCategory itemCategory = itemCategoryIterator.next();
 	        	itemCategoryWriter.write(itemCategory.toCSVString()); 	
 	        }
 	        itemCategoryWriter.close();
@@ -381,10 +381,10 @@ class MyParser {
 	        
 	        FileWriter bidStream = new FileWriter("Bid.csv");
 	        BufferedWriter bidWriter = new BufferedWriter(bidStream);
-	        Iterator<Bid> bidIterator = bidSet.iterator();
+	        Iterator<DatabaseBid> bidIterator = bidSet.iterator();
 	        while (bidIterator.hasNext())
 	        {
-	        	Bid bid = bidIterator.next();
+	        	DatabaseBid bid = bidIterator.next();
 	        	bidWriter.write(bid.toCSVString()); 	
 	        }
 	        bidWriter.close();
