@@ -182,7 +182,7 @@ public class AuctionSearch implements IAuctionSearch {
 				}
 				if (endTime != null)
 				{
-					statement.setTimestamp(parameterIndex, (Timestamp) endTime);
+					statement.setTimestamp(parameterIndex, new Timestamp(endTime.getTime()));
 					parameterIndex++;
 				}
 				if (sellerID != null)
