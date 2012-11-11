@@ -1,6 +1,7 @@
 package edu.ucla.cs.cs144;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.sql.Connection;
@@ -10,6 +11,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -36,6 +38,12 @@ import java.text.SimpleDateFormat;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import edu.ucla.cs.cs144.DbManager;
 import edu.ucla.cs.cs144.SearchConstraint;
@@ -222,6 +230,7 @@ public class AuctionSearch implements IAuctionSearch {
 	}
 
 	public String getXMLDataForItemId(String itemId) {
+		String XML = "";
 		
 		try {
 			Connection connection = DbManager.getConnection(true);
@@ -290,11 +299,16 @@ public class AuctionSearch implements IAuctionSearch {
     		itemElement.setAttribute("ItemID", Long.toString(item.id));
     		document.appendChild(itemElement);
     		
+    		// Name
+    		Element nameElement = document.createElement("Name");
+    		nameElement.appendChild(document.createTextNode(StringEscapeUtils.escapeXml(item.name)));
+			itemElement.appendChild(nameElement);
+    		
     		// Categories
     		for (int categoryIndex = 0, categoryCount = item.categories.length; categoryIndex < categoryCount; categoryIndex++)
     		{
     			Element categoryElement = document.createElement("Category");
-    			categoryElement.appendChild(document.createTextNode(item.categories[categoryIndex]));
+    			categoryElement.appendChild(document.createTextNode(StringEscapeUtils.escapeXml(item.categories[categoryIndex])));
     			itemElement.appendChild(categoryElement);
     		}
     		
@@ -337,18 +351,18 @@ public class AuctionSearch implements IAuctionSearch {
     			
     			// Bidder
     			Element bidderElement = document.createElement("Bidder");
-    			bidderElement.setAttribute("UserID", bid.bidder.id);
+    			bidderElement.setAttribute("UserID", StringEscapeUtils.escapeXml(bid.bidder.id));
     			bidderElement.setAttribute("Rating", Integer.toString(bid.bidder.rating));
     			bidElement.appendChild(bidderElement);
     			
     			// Location
     			Element bidderLocationElement = document.createElement("Location");
-    			bidderLocationElement.appendChild(document.createTextNode(bid.bidder.location));
+    			bidderLocationElement.appendChild(document.createTextNode(StringEscapeUtils.escapeXml(bid.bidder.location)));
     			bidderElement.appendChild(bidderLocationElement);
     			
     			// Country
     			Element bidderCountryElement = document.createElement("Country");
-    			bidderCountryElement.appendChild(document.createTextNode(bid.bidder.country));
+    			bidderCountryElement.appendChild(document.createTextNode(StringEscapeUtils.escapeXml(bid.bidder.country)));
     			bidderElement.appendChild(bidderCountryElement);
     			
     			// Time
@@ -364,25 +378,62 @@ public class AuctionSearch implements IAuctionSearch {
     		}
     		
     		// Location
-    		
+    		Element itemLocationElement = document.createElement("Location");
+    		itemLocationElement.appendChild(document.createTextNode(StringEscapeUtils.escapeXml(item.seller.location)));
+			itemElement.appendChild(itemLocationElement);
+			
     		// Country
+			Element itemCountryElement = document.createElement("Country");
+			itemCountryElement.appendChild(document.createTextNode(StringEscapeUtils.escapeXml(item.seller.country)));
+			itemElement.appendChild(itemCountryElement);
     		
     		// Started
+			Element startedElement = document.createElement("Started");
+			String startedTime = new SimpleDateFormat("MMM-dd-yy HH:mm:ss").format(item.startTime);
+			startedElement.appendChild(document.createTextNode(startedTime));
+			itemElement.appendChild(startedElement);
     		
     		// Ends
+			Element endsElement = document.createElement("Ends");
+			String endsTime = new SimpleDateFormat("MMM-dd-yy HH:mm:ss").format(item.endTime);
+			endsElement.appendChild(document.createTextNode(endsTime));
+			itemElement.appendChild(endsElement);
     		
     		// Seller
+			Element sellerElement = document.createElement("Seller");
+			sellerElement.setAttribute("UserID", StringEscapeUtils.escapeXml(item.seller.id));
+			sellerElement.setAttribute("Rating", Integer.toString(item.seller.rating));
+			itemElement.appendChild(sellerElement);
     		
     		// Description
+    		Element itemDescriptionElement = document.createElement("Description");
+    		itemDescriptionElement.appendChild(document.createTextNode(StringEscapeUtils.escapeXml(item.description)));
+			itemElement.appendChild(itemDescriptionElement);
+			
+			TransformerFactory transformerFactory = TransformerFactory.newInstance();
+			Transformer transformer = transformerFactory.newTransformer();
+			DOMSource source = new DOMSource(document);
+			StringWriter writer = new StringWriter();
+			StreamResult result = new StreamResult(writer);
+			
+			transformer.transform(source, result);
+			
+			XML = writer.toString();
     		
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} catch (ParserConfigurationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (TransformerConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (TransformerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		// TODO: Your code here!
-		return null;
+
+		return XML;
 	}
 	
 	public String echo(String message) {
