@@ -11,7 +11,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -244,8 +243,8 @@ public class AuctionSearch implements IAuctionSearch {
         	String itemDescription = itemsRS.getString("description");
         	BigDecimal buyNowPrice = itemsRS.getBigDecimal("buy_now_price");
         	BigDecimal minFirstBid = itemsRS.getBigDecimal("minimum_start_bid");
-        	Date startTime = itemsRS.getDate("time_start");
-        	Date endTime = itemsRS.getDate("time_end");
+        	Date startTime = itemsRS.getTimestamp("time_start");
+        	Date endTime = itemsRS.getTimestamp("time_end");
         	String sellerID = itemsRS.getString("seller_id");
         	String sellerCountry = itemsRS.getString("country");
         	String sellerLocation = itemsRS.getString("location");
@@ -262,7 +261,7 @@ public class AuctionSearch implements IAuctionSearch {
         	{
         		long bidID = bidsRS.getLong("bid_id");
         		BigDecimal amount = bidsRS.getBigDecimal("amount");
-        		Date bidTime = bidsRS.getDate("time");
+        		Date bidTime = bidsRS.getTimestamp("time");
         		String bidderID = bidsRS.getString("bidder_id");
         		String bidderCountry = bidsRS.getString("country");
         		String bidderLocation = bidsRS.getString("location");
@@ -273,7 +272,8 @@ public class AuctionSearch implements IAuctionSearch {
         		Bid bid = new Bid(bidID, itemID, bidder, amount, bidTime);
         		bids.add(bid);
         	}
-        	Bid[] bidArray = (Bid[]) bids.toArray();        		
+        	Bid[] bidArray = new Bid[bids.size()];
+        	bidArray = bids.toArray(bidArray);        		
         	
         	// Get all categories for this item
         	// TODO:preparedStatement
@@ -286,7 +286,8 @@ public class AuctionSearch implements IAuctionSearch {
         		String category = categoriesRS.getString("name");
         		itemCategories.add(category);
         	}
-        	String[] categoryArray = (String[]) itemCategories.toArray();
+        	String[] categoryArray = new String[itemCategories.size()];
+        	categoryArray = itemCategories.toArray(categoryArray);
         	
         	Item item = new Item(itemID, itemName, seller, itemDescription, minFirstBid, buyNowPrice, startTime, endTime, bidArray, categoryArray);
         	
@@ -301,14 +302,14 @@ public class AuctionSearch implements IAuctionSearch {
     		
     		// Name
     		Element nameElement = document.createElement("Name");
-    		nameElement.appendChild(document.createTextNode(StringEscapeUtils.escapeXml(item.name)));
+    		nameElement.appendChild(document.createTextNode(item.name));
 			itemElement.appendChild(nameElement);
     		
     		// Categories
     		for (int categoryIndex = 0, categoryCount = item.categories.length; categoryIndex < categoryCount; categoryIndex++)
     		{
     			Element categoryElement = document.createElement("Category");
-    			categoryElement.appendChild(document.createTextNode(StringEscapeUtils.escapeXml(item.categories[categoryIndex])));
+    			categoryElement.appendChild(document.createTextNode(item.categories[categoryIndex]));
     			itemElement.appendChild(categoryElement);
     		}
     		
@@ -351,18 +352,18 @@ public class AuctionSearch implements IAuctionSearch {
     			
     			// Bidder
     			Element bidderElement = document.createElement("Bidder");
-    			bidderElement.setAttribute("UserID", StringEscapeUtils.escapeXml(bid.bidder.id));
+    			bidderElement.setAttribute("UserID", bid.bidder.id);
     			bidderElement.setAttribute("Rating", Integer.toString(bid.bidder.rating));
     			bidElement.appendChild(bidderElement);
     			
     			// Location
     			Element bidderLocationElement = document.createElement("Location");
-    			bidderLocationElement.appendChild(document.createTextNode(StringEscapeUtils.escapeXml(bid.bidder.location)));
+    			bidderLocationElement.appendChild(document.createTextNode(bid.bidder.location));
     			bidderElement.appendChild(bidderLocationElement);
     			
     			// Country
     			Element bidderCountryElement = document.createElement("Country");
-    			bidderCountryElement.appendChild(document.createTextNode(StringEscapeUtils.escapeXml(bid.bidder.country)));
+    			bidderCountryElement.appendChild(document.createTextNode(bid.bidder.country));
     			bidderElement.appendChild(bidderCountryElement);
     			
     			// Time
@@ -379,12 +380,12 @@ public class AuctionSearch implements IAuctionSearch {
     		
     		// Location
     		Element itemLocationElement = document.createElement("Location");
-    		itemLocationElement.appendChild(document.createTextNode(StringEscapeUtils.escapeXml(item.seller.location)));
+    		itemLocationElement.appendChild(document.createTextNode(item.seller.location));
 			itemElement.appendChild(itemLocationElement);
 			
     		// Country
 			Element itemCountryElement = document.createElement("Country");
-			itemCountryElement.appendChild(document.createTextNode(StringEscapeUtils.escapeXml(item.seller.country)));
+			itemCountryElement.appendChild(document.createTextNode(item.seller.country));
 			itemElement.appendChild(itemCountryElement);
     		
     		// Started
@@ -401,13 +402,13 @@ public class AuctionSearch implements IAuctionSearch {
     		
     		// Seller
 			Element sellerElement = document.createElement("Seller");
-			sellerElement.setAttribute("UserID", StringEscapeUtils.escapeXml(item.seller.id));
+			sellerElement.setAttribute("UserID", item.seller.id);
 			sellerElement.setAttribute("Rating", Integer.toString(item.seller.rating));
 			itemElement.appendChild(sellerElement);
     		
     		// Description
     		Element itemDescriptionElement = document.createElement("Description");
-    		itemDescriptionElement.appendChild(document.createTextNode(StringEscapeUtils.escapeXml(item.description)));
+    		itemDescriptionElement.appendChild(document.createTextNode(item.description));
 			itemElement.appendChild(itemDescriptionElement);
 			
 			TransformerFactory transformerFactory = TransformerFactory.newInstance();
