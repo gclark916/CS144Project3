@@ -449,20 +449,25 @@ public class AuctionSearch implements IAuctionSearch {
 		Hits hits = searcher.search(luceneQuery);
 		
 		// Translate Hits into SearchResults
-		int hitCount;
+		int oneAfterFinalHitIndex;
 		if (numResultsToReturn == 0)
-			hitCount = hits.length();
+			oneAfterFinalHitIndex = hits.length();
 		else
-			hitCount = numResultsToSkip + numResultsToReturn;
-		results = new SearchResult[hitCount];
-		for (int hitIndex = numResultsToSkip, searchResultIndex = 0; hitIndex < hitCount; hitIndex++, searchResultIndex++)
+			oneAfterFinalHitIndex = numResultsToSkip + numResultsToReturn;
+		oneAfterFinalHitIndex = oneAfterFinalHitIndex <= hits.length() ? oneAfterFinalHitIndex : hits.length(); 
+		int numHits = oneAfterFinalHitIndex - numResultsToSkip;
+		if (numHits > 0)
 		{
-			Document document = hits.doc(hitIndex);
-			String itemID = document.get("id");
-			String name = document.get("name");
-		    	
-			SearchResult result = new SearchResult(itemID, name);
-			results[searchResultIndex] = result;
+			results = new SearchResult[numHits];
+			for (int hitIndex = numResultsToSkip, searchResultIndex = 0; hitIndex < oneAfterFinalHitIndex; hitIndex++, searchResultIndex++)
+			{
+				Document document = hits.doc(hitIndex);
+				String itemID = document.get("id");
+				String name = document.get("name");
+			    	
+				SearchResult result = new SearchResult(itemID, name);
+				results[searchResultIndex] = result;
+			}
 		}
 		
 		return results;

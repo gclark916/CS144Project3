@@ -29,7 +29,7 @@ public class AuctionSearchTest {
 		    new SearchConstraint(FieldName.BuyPrice, "5.99"); 
 		SearchConstraint[] constraints = {constraint};
 		SearchResult[] advancedResults = as.advancedSearch(constraints, 0, 20);
-		System.out.println("Advanced Seacrh");
+		System.out.println("Advanced Search");
 		System.out.println("Received " + advancedResults.length + " results");
 		for(SearchResult result : advancedResults) {
 			System.out.println(result.getItemId() + ": " + result.getName());

@@ -128,19 +128,21 @@ public class Indexer {
 	        		Bid bid = new Bid(bidID, itemID, bidder, amount, bidTime);
 	        		bids.add(bid);
 	        	}*/
-	        	Bid[] bidArray = (Bid[]) bids.toArray();
+	        	Bid[] bidArray =  new Bid[bids.size()];
+	        	bidArray = bids.toArray(bidArray);
 	        	
 	        	// Get all categories for this item
 	        	/*String categoriesQuery = String.format("SELECT * FROM ItemCategory WHERE item_id = %d", itemID);
 	        	ResultSet categoriesRS = statement.executeQuery(categoriesQuery);*/
-	        	Set<String> itemCategories = new HashSet<String>();
+	        	Set<String> categories = new HashSet<String>();
 	        	/*while (categoriesRS.next())
 	        	{
 	        		int categoryID = categoriesRS.getInt("category_id");
 	        		String category = categories.get(categoryID);
 	        		itemCategories.add(category);
 	        	}*/
-	        	String[] categoryArray = (String[]) itemCategories.toArray();
+	        	String[] categoryArray = new String[categories.size()];
+	        	categoryArray = (String[]) categories.toArray(categoryArray);
 	        	
 	        	//EbayUser seller = users.get(sellerID);
 	        	EbayUser seller = null;
