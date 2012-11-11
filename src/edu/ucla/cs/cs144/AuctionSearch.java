@@ -21,13 +21,21 @@ import org.apache.lucene.search.Hit;
 import org.apache.lucene.search.Hits;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Element;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.text.SimpleDateFormat;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import edu.ucla.cs.cs144.DbManager;
 import edu.ucla.cs.cs144.SearchConstraint;
@@ -203,6 +211,8 @@ public class AuctionSearch implements IAuctionSearch {
 			Query luceneQuery = parser.parse(query);
 			
 			results = getSearchResultsForQuery(luceneQuery, numResultsToSkip, numResultsToReturn);
+			
+			connection.close();
 		} catch (SQLException | java.text.ParseException | ParseException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -212,6 +222,165 @@ public class AuctionSearch implements IAuctionSearch {
 	}
 
 	public String getXMLDataForItemId(String itemId) {
+		
+		try {
+			Connection connection = DbManager.getConnection(true);
+			PreparedStatement itemStatement = connection.prepareStatement("SELECT * FROM Item JOIN EbayUser ON Item.seller_id = EbayUser.user_id WHERE item_id = ?");
+			itemStatement.setLong(1, Long.parseLong(itemId));
+			ResultSet itemsRS = itemStatement.executeQuery();
+			itemsRS.next();
+			
+        	long itemID = itemsRS.getLong("item_id");
+        	String itemName = itemsRS.getString("name");
+        	String itemDescription = itemsRS.getString("description");
+        	BigDecimal buyNowPrice = itemsRS.getBigDecimal("buy_now_price");
+        	BigDecimal minFirstBid = itemsRS.getBigDecimal("minimum_start_bid");
+        	Date startTime = itemsRS.getDate("time_start");
+        	Date endTime = itemsRS.getDate("time_end");
+        	String sellerID = itemsRS.getString("seller_id");
+        	String sellerCountry = itemsRS.getString("country");
+        	String sellerLocation = itemsRS.getString("location");
+        	int sellerRating = itemsRS.getInt("rating");
+        	
+        	EbayUser seller = new EbayUser(sellerID, sellerRating, sellerCountry, sellerLocation);
+        	
+        	// Get all bids for item
+        	PreparedStatement bidsStatement = connection.prepareStatement("SELECT * FROM Bid JOIN EbayUser ON Bid.bidder_id = EbayUser.user_id WHERE item_id = ? ORDER BY time ASC");
+        	bidsStatement.setLong(1, itemID);
+        	ResultSet bidsRS = bidsStatement.executeQuery();
+        	List<Bid> bids = new ArrayList<Bid>();
+        	while (bidsRS.next())
+        	{
+        		long bidID = bidsRS.getLong("bid_id");
+        		BigDecimal amount = bidsRS.getBigDecimal("amount");
+        		Date bidTime = bidsRS.getDate("time");
+        		String bidderID = bidsRS.getString("bidder_id");
+        		String bidderCountry = bidsRS.getString("country");
+        		String bidderLocation = bidsRS.getString("location");
+        		int bidderRating = bidsRS.getInt("rating");
+        		
+        		EbayUser bidder = new EbayUser(bidderID, bidderRating, bidderCountry, bidderLocation);
+        		
+        		Bid bid = new Bid(bidID, itemID, bidder, amount, bidTime);
+        		bids.add(bid);
+        	}
+        	Bid[] bidArray = (Bid[]) bids.toArray();        		
+        	
+        	// Get all categories for this item
+        	// TODO:preparedStatement
+        	PreparedStatement categoriesStatement = connection.prepareStatement("SELECT name FROM ItemCategory JOIN Category ON ItemCategory.category_id = Category.category_id WHERE item_id = ?");
+        	categoriesStatement.setLong(1, itemID);
+        	ResultSet categoriesRS = categoriesStatement.executeQuery();
+        	Set<String> itemCategories = new HashSet<String>();
+        	while (categoriesRS.next())
+        	{
+        		String category = categoriesRS.getString("name");
+        		itemCategories.add(category);
+        	}
+        	String[] categoryArray = (String[]) itemCategories.toArray();
+        	
+        	Item item = new Item(itemID, itemName, seller, itemDescription, minFirstBid, buyNowPrice, startTime, endTime, bidArray, categoryArray);
+        	
+        	DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    		DocumentBuilder builder = factory.newDocumentBuilder();
+    		org.w3c.dom.Document document = builder.newDocument();
+     
+    		// Root (Item)
+    		Element itemElement = document.createElement("Item");
+    		itemElement.setAttribute("ItemID", Long.toString(item.id));
+    		document.appendChild(itemElement);
+    		
+    		// Categories
+    		for (int categoryIndex = 0, categoryCount = item.categories.length; categoryIndex < categoryCount; categoryIndex++)
+    		{
+    			Element categoryElement = document.createElement("Category");
+    			categoryElement.appendChild(document.createTextNode(item.categories[categoryIndex]));
+    			itemElement.appendChild(categoryElement);
+    		}
+    		
+    		// Current price
+    		BigDecimal currentPrice;
+    		if (item.bids.length > 0)
+    			currentPrice = item.bids[item.bids.length-1].amount;
+    		else
+    			currentPrice = item.minimumFirstBid;
+    		Element currentlyElement = document.createElement("Currently");
+    		currentlyElement.appendChild(document.createTextNode(currentPrice.toPlainString()));
+    		itemElement.appendChild(currentlyElement);
+    		
+    		// Buy price
+    		if (item.buyNowPrice != null && buyNowPrice.compareTo(BigDecimal.ZERO) != 0)
+    		{
+    			Element buyPriceElement = document.createElement("Buy_Price");
+    			buyPriceElement.appendChild(document.createTextNode(item.buyNowPrice.toPlainString()));
+    			itemElement.appendChild(buyPriceElement);
+    		}
+    		
+    		// Min first bid
+    		Element minFirstBidElement = document.createElement("First_Bid");
+    		minFirstBidElement.appendChild(document.createTextNode(item.minimumFirstBid.toPlainString()));
+    		itemElement.appendChild(minFirstBidElement);
+    		
+    		// Number of bids
+    		Element numBidsElement = document.createElement("Number_of_Bids");
+    		numBidsElement.appendChild(document.createTextNode(Integer.toString(item.bids.length)));
+    		itemElement.appendChild(numBidsElement);
+    		
+    		// Bids
+    		Element bidsElement = document.createElement("Bids");
+    		itemElement.appendChild(bidsElement);
+    		for (int bidIndex = 0, bidCount = item.bids.length; bidIndex < bidCount; bidIndex++)
+    		{
+    			Bid bid = item.bids[bidIndex];
+    			Element bidElement = document.createElement("Bid");
+    			bidsElement.appendChild(bidElement);
+    			
+    			// Bidder
+    			Element bidderElement = document.createElement("Bidder");
+    			bidderElement.setAttribute("UserID", bid.bidder.id);
+    			bidderElement.setAttribute("Rating", Integer.toString(bid.bidder.rating));
+    			bidElement.appendChild(bidderElement);
+    			
+    			// Location
+    			Element bidderLocationElement = document.createElement("Location");
+    			bidderLocationElement.appendChild(document.createTextNode(bid.bidder.location));
+    			bidderElement.appendChild(bidderLocationElement);
+    			
+    			// Country
+    			Element bidderCountryElement = document.createElement("Country");
+    			bidderCountryElement.appendChild(document.createTextNode(bid.bidder.country));
+    			bidderElement.appendChild(bidderCountryElement);
+    			
+    			// Time
+    			Element bidTimeElement = document.createElement("Time");
+    			String time = new SimpleDateFormat("MMM-dd-yy HH:mm:ss").format(bid.time);
+    			bidTimeElement.appendChild(document.createTextNode(time));
+    			bidElement.appendChild(bidTimeElement);
+    			
+    			// Amount
+    			Element bidAmountElement = document.createElement("Amount");
+    			bidAmountElement.appendChild(document.createTextNode(bid.amount.toPlainString()));
+    			bidElement.appendChild(bidAmountElement);
+    		}
+    		
+    		// Location
+    		
+    		// Country
+    		
+    		// Started
+    		
+    		// Ends
+    		
+    		// Seller
+    		
+    		// Description
+    		
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} catch (ParserConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		// TODO: Your code here!
 		return null;
 	}
