@@ -37,6 +37,7 @@ import java.text.SimpleDateFormat;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
@@ -417,6 +418,8 @@ public class AuctionSearch implements IAuctionSearch {
 			StringWriter writer = new StringWriter();
 			StreamResult result = new StreamResult(writer);
 			
+			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+			transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
 			transformer.transform(source, result);
 			
 			XML = writer.toString();

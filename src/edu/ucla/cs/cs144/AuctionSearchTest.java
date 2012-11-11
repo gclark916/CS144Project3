@@ -16,14 +16,37 @@ public class AuctionSearchTest {
 		String message = "Test message";
 		String reply = as.echo(message);
 		System.out.println("Reply: " + reply);
+		System.out.println();
 		
+		// Basic with limited
 		String query = "superman";
 		SearchResult[] basicResults = as.basicSearch(query, 0, 20);
-		System.out.println("Basic Seacrh Query: " + query);
+		System.out.println("Basic Search Query: " + query);
 		System.out.println("Received " + basicResults.length + " results");
 		for(SearchResult result : basicResults) {
 			System.out.println(result.getItemId() + ": " + result.getName());
 		}
+		System.out.println();
+		
+		// Basic unlimited
+		query = "superman";
+		basicResults = as.basicSearch(query, 0, 0);
+		System.out.println("Basic Search Query: " + query);
+		System.out.println("Received " + basicResults.length + " results");
+		for(SearchResult result : basicResults) {
+			System.out.println(result.getItemId() + ": " + result.getName());
+		}
+		System.out.println();
+		
+		// basic unlimited
+		query = "kitchenware";
+		basicResults = as.basicSearch(query, 0, 0);
+		System.out.println("Basic Search Query: " + query);
+		System.out.println("Received " + basicResults.length + " results");
+		for(SearchResult result : basicResults) {
+			System.out.println(result.getItemId() + ": " + result.getName());
+		}
+		System.out.println();
 		
 		SearchConstraint constraint =
 		    new SearchConstraint(FieldName.BuyPrice, "5.99"); 
@@ -34,11 +57,19 @@ public class AuctionSearchTest {
 		for(SearchResult result : advancedResults) {
 			System.out.println(result.getItemId() + ": " + result.getName());
 		}
+		System.out.println();
 		
 		String itemId = "1497595357";
 		String item = as.getXMLDataForItemId(itemId);
 		System.out.println("XML data for ItemId: " + itemId);
 		System.out.println(item);
+		System.out.println();
+		
+		itemId = "1497497054";
+		item = as.getXMLDataForItemId(itemId);
+		System.out.println("XML data for ItemId: " + itemId);
+		System.out.println(item);
+		System.out.println();
 
 		// Add your own test here
 	}

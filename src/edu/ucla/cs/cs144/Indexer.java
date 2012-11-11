@@ -65,7 +65,7 @@ public class Indexer {
         {
         	System.out.println(ex);
         	return;
-        }
+        }*/
         
         // Map categoryIDs to names
         Map<Integer, String> categories = new HashMap<Integer, String>();
@@ -84,7 +84,7 @@ public class Indexer {
         {
         	System.out.println(ex);
         	return;
-        }*/
+        }
         
         // Construct and index all items
         String indexDirectory = System.getenv("LUCENE_INDEX");
@@ -111,38 +111,21 @@ public class Indexer {
 	        	Date startTime = itemsRS.getDate("time_start");
 	        	Date endTime = itemsRS.getDate("time_end");
 	        	//String sellerID = itemsRS.getString("seller_id");
-	        	
-	        	// Get all bids for item
-	        	/*PreparedStatement bidsStatement = connection.prepareStatement("SELECT * FROM Bid WHERE item_id = ?");
-	        	bidsStatement.setLong(1, itemID);
-	        	ResultSet bidsRS = bidsStatement.executeQuery();*/
-	        	Set<Bid> bids = new HashSet<Bid>();
-	        	/*while (bidsRS.next())
-	        	{
-	        		long bidID = bidsRS.getLong("bid_id");
-	        		BigDecimal amount = bidsRS.getBigDecimal("amount");
-	        		Date bidTime = bidsRS.getDate("time");
-	        		String bidderID = bidsRS.getString("bidder_id");
-	        		EbayUser bidder = users.get(bidderID);
-	        		
-	        		Bid bid = new Bid(bidID, itemID, bidder, amount, bidTime);
-	        		bids.add(bid);
-	        	}*/
-	        	Bid[] bidArray =  new Bid[bids.size()];
-	        	bidArray = bids.toArray(bidArray);
+	        	Bid[] bidArray =  new Bid[0];
 	        	
 	        	// Get all categories for this item
-	        	/*String categoriesQuery = String.format("SELECT * FROM ItemCategory WHERE item_id = %d", itemID);
-	        	ResultSet categoriesRS = statement.executeQuery(categoriesQuery);*/
-	        	Set<String> categories = new HashSet<String>();
-	        	/*while (categoriesRS.next())
+	        	PreparedStatement itemCategoriesStatement = connection.prepareStatement("SELECT * FROM ItemCategory WHERE item_id = ?");
+	        	itemCategoriesStatement.setLong(1, itemID);
+	        	ResultSet itemCategoriesRS = itemCategoriesStatement.executeQuery();
+	        	Set<String> itemCategories = new HashSet<String>();
+	        	while (itemCategoriesRS.next())
 	        	{
-	        		int categoryID = categoriesRS.getInt("category_id");
+	        		int categoryID = itemCategoriesRS.getInt("category_id");
 	        		String category = categories.get(categoryID);
 	        		itemCategories.add(category);
-	        	}*/
-	        	String[] categoryArray = new String[categories.size()];
-	        	categoryArray = (String[]) categories.toArray(categoryArray);
+	        	}
+	        	String[] categoryArray = new String[itemCategories.size()];
+	        	categoryArray = (String[]) itemCategories.toArray(categoryArray);
 	        	
 	        	//EbayUser seller = users.get(sellerID);
 	        	EbayUser seller = null;
@@ -185,7 +168,7 @@ public class Indexer {
     	int categoryCount = item.categories.length;
     	for (int categoryIndex = 0; categoryIndex < categoryCount; categoryIndex++)
     	{
-    		concatenatedCategories = concatenatedCategories.concat(item.categories[categoryIndex] + " ");
+    		concatenatedCategories = concatenatedCategories + item.categories[categoryIndex] + " ";
     	}
     	document.add(new Field("category", concatenatedCategories, Field.Store.NO, Field.Index.TOKENIZED));
     	try {
