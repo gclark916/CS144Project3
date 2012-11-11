@@ -1,14 +1,11 @@
 package edu.ucla.cs.cs144;
 
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.nio.ByteBuffer;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -16,11 +13,9 @@ import java.util.Set;
 
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.store.LockObtainFailedException;
 
 public class Indexer {
     
@@ -106,12 +101,6 @@ public class Indexer {
 	        	long itemID = itemsRS.getLong("item_id");
 	        	String itemName = itemsRS.getString("name");
 	        	String itemDescription = itemsRS.getString("description");
-	        	BigDecimal buyNowPrice = itemsRS.getBigDecimal("buy_now_price");
-	        	BigDecimal minFirstBid = itemsRS.getBigDecimal("minimum_start_bid");
-	        	Date startTime = itemsRS.getDate("time_start");
-	        	Date endTime = itemsRS.getDate("time_end");
-	        	//String sellerID = itemsRS.getString("seller_id");
-	        	Bid[] bidArray =  new Bid[0];
 	        	
 	        	// Get all categories for this item
 	        	PreparedStatement itemCategoriesStatement = connection.prepareStatement("SELECT * FROM ItemCategory WHERE item_id = ?");
@@ -127,10 +116,7 @@ public class Indexer {
 	        	String[] categoryArray = new String[itemCategories.size()];
 	        	categoryArray = (String[]) itemCategories.toArray(categoryArray);
 	        	
-	        	//EbayUser seller = users.get(sellerID);
-	        	EbayUser seller = null;
-	        	
-	        	Item item = new Item(itemID, itemName, seller, itemDescription, minFirstBid, buyNowPrice, startTime, endTime, bidArray, categoryArray);
+	        	Item item = new Item(itemID, itemName, null, itemDescription, null, null, null, null, null, categoryArray);
 	        	indexItem(item, indexWriter);
 	        }
         } catch (SQLException ex) {
@@ -171,6 +157,7 @@ public class Indexer {
     		concatenatedCategories = concatenatedCategories + item.categories[categoryIndex] + " ";
     	}
     	document.add(new Field("category", concatenatedCategories, Field.Store.NO, Field.Index.TOKENIZED));
+    	document.add(new Field("all", concatenatedCategories + " " + item.name + " " + item.description, Field.Store.NO, Field.Index.TOKENIZED));
     	try {
 			writer.addDocument(document);
 		} catch (CorruptIndexException e) {

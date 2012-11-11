@@ -3,32 +3,26 @@ package edu.ucla.cs.cs144;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.math.BigDecimal;
-import java.nio.ByteBuffer;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Timestamp;
 
-import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.queryParser.MultiFieldQueryParser;
 import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.queryParser.QueryParser;
-import org.apache.lucene.search.Hit;
 import org.apache.lucene.search.Hits;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
-import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -75,8 +69,9 @@ public class AuctionSearch implements IAuctionSearch {
 		SearchResult[] results = new SearchResult[0];
 		
 		try {
-			String[] fields = {"name", "description", "category"};
-			MultiFieldQueryParser parser = new MultiFieldQueryParser(fields, new StandardAnalyzer());
+			//String[] fields = {"name", "description", "category"};
+			//MultiFieldQueryParser parser = new MultiFieldQueryParser(fields, new StandardAnalyzer());
+			QueryParser parser = new QueryParser("all", new StandardAnalyzer());
 			Query luceneQuery = parser.parse(query);
 		    results = getSearchResultsForQuery(luceneQuery, numResultsToSkip, numResultsToReturn);
 		} catch (IOException | ParseException e) {
