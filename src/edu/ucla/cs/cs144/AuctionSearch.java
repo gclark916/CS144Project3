@@ -86,7 +86,6 @@ public class AuctionSearch implements IAuctionSearch {
 			int numResultsToSkip, int numResultsToReturn) {
 		SearchResult[] results = new SearchResult[0];
 		
-		// TODO: Your code here!
 		// Get itemIDs from SQL search first
 		Connection connection = null;
 		try {
@@ -122,7 +121,7 @@ public class AuctionSearch implements IAuctionSearch {
 					else if (field.equals(FieldName.Category))
 						luceneField = "category";
 					
-					query = query + " " + luceneField + ":(" + constraint.getValue() + ")";
+					query = query + " +" + luceneField + ":(" + constraint.getValue() + ")";
 				}
 			}
 			
