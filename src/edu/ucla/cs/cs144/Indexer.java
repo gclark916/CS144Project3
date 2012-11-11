@@ -148,19 +148,24 @@ public class Indexer {
 	        	Item item = new Item(itemID, itemName, seller, itemDescription, minFirstBid, buyNowPrice, startTime, endTime, bidArray, categoryArray);
 	        	indexItem(item, indexWriter);
 	        }
-        }
-        catch (SQLException ex)
-        {
+        } catch (SQLException ex) {
         	System.out.println(ex);
         	return;
         }
         
+        try {
+			indexWriter.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        
         // close the database connection
-	try {
-	    connection.close();
-	} catch (SQLException ex) {
-	    System.out.println(ex);
-	}
+        try {
+        	connection.close();
+	    } catch (SQLException ex) {
+	    	System.out.println(ex);
+	    }
     }    
 
     public static void main(String args[]) {
@@ -171,8 +176,7 @@ public class Indexer {
     private void indexItem(Item item, IndexWriter writer)
     {
     	Document document = new Document();
-    	document.add(new Field("id", ByteBuffer.allocate(8).putLong(item.id).array(), Field.Store.COMPRESS));
-    	//long id = ByteBuffer.allocate(8).put(document.getBinaryValue("id")).getLong();
+    	document.add(new Field("id", Long.toString(item.id), Field.Store.YES, Field.Index.UN_TOKENIZED));
     	document.add(new Field("name", item.name, Field.Store.YES, Field.Index.TOKENIZED));
     	document.add(new Field("description", item.description, Field.Store.NO, Field.Index.TOKENIZED));
     	String concatenatedCategories = new String();
