@@ -32,70 +32,33 @@ public class Indexer {
         try 
         {
         	connection = DbManager.getConnection(true);
-        } 
-        catch (SQLException ex) 
-        {
-        	System.out.println(ex);
-        	return;
-        }
-        
-        // Map usernames to EbayUSer objects
-        /*Map<String, EbayUser> users = new HashMap<String, EbayUser>();
-        try
-        {
-	        Statement statement = connection.createStatement();
-	        ResultSet usersRS = statement.executeQuery("SELECT * FROM EbayUser");
-	        while (usersRS.next())
-	        {
-	        	String userID = usersRS.getString("user_id");
-	        	String country = usersRS.getString("country");
-	        	String location = usersRS.getString("location");
-	        	int rating = usersRS.getInt("rating");
-	        	
-	        	EbayUser user = new EbayUser(userID, rating, country, location);
-	        	users.put(userID, user);
-	        }
-        }
-        catch (SQLException ex)
-        {
-        	System.out.println(ex);
-        	return;
-        }*/
-        
-        // Map categoryIDs to names
-        Map<Integer, String> categories = new HashMap<Integer, String>();
-        try
-        {
-	        Statement statement = connection.createStatement();
-	        ResultSet categoriesRS = statement.executeQuery("SELECT * FROM Category");
+        	
+        	// Map itemIDs to category sets
+        	Map<Long, Set<String>> categories = new HashMap<Long, Set<String>>();
+        	Statement categoryStatement = connection.createStatement();
+	        ResultSet categoriesRS = categoryStatement.executeQuery("SELECT item_id, name FROM ItemCategory JOIN Category ON ItemCategory.category_id = Category.category_id");
 	        while (categoriesRS.next())
 	        {
-	        	int categoryID = categoriesRS.getInt("category_id");
+	        	long itemID = categoriesRS.getLong("item_id");
 	        	String category = categoriesRS.getString("name");
-	        	categories.put(categoryID, category);
+	        	Set<String> catSet = categories.get(itemID);
+				if (catSet != null)
+					catSet.add(category);
+				else
+				{
+					catSet = new HashSet<String>();
+					catSet.add(category);
+					categories.put(itemID, catSet);
+				}
 	        }
-        }
-        catch (SQLException ex)
-        {
-        	System.out.println(ex);
-        	return;
-        }
-        
-        // Construct and index all items
-        String indexDirectory = System.getenv("LUCENE_INDEX");
-        IndexWriter indexWriter;
-		try {
-			indexWriter = new IndexWriter(indexDirectory, new StandardAnalyzer(), true);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return;
-		}
-		
-        try
-        {
-	        Statement statement = connection.createStatement();
-	        ResultSet itemsRS = statement.executeQuery("SELECT * FROM Item");
+	        
+	        // Construct and index all items
+	        String indexDirectory = System.getenv("LUCENE_INDEX");
+	        IndexWriter indexWriter;
+	        indexWriter = new IndexWriter(indexDirectory, new StandardAnalyzer(), true);
+	        
+	        Statement itemStatement = connection.createStatement();
+	        ResultSet itemsRS = itemStatement.executeQuery("SELECT * FROM Item");
 	        while (itemsRS.next())
 	        {
 	        	long itemID = itemsRS.getLong("item_id");
@@ -103,40 +66,30 @@ public class Indexer {
 	        	String itemDescription = itemsRS.getString("description");
 	        	
 	        	// Get all categories for this item
-	        	PreparedStatement itemCategoriesStatement = connection.prepareStatement("SELECT * FROM ItemCategory WHERE item_id = ?");
-	        	itemCategoriesStatement.setLong(1, itemID);
-	        	ResultSet itemCategoriesRS = itemCategoriesStatement.executeQuery();
-	        	Set<String> itemCategories = new HashSet<String>();
-	        	while (itemCategoriesRS.next())
-	        	{
-	        		int categoryID = itemCategoriesRS.getInt("category_id");
-	        		String category = categories.get(categoryID);
-	        		itemCategories.add(category);
-	        	}
+	        	Set<String> itemCategories = categories.get(itemID);
 	        	String[] categoryArray = new String[itemCategories.size()];
 	        	categoryArray = (String[]) itemCategories.toArray(categoryArray);
 	        	
 	        	Item item = new Item(itemID, itemName, null, itemDescription, null, null, null, null, null, categoryArray);
 	        	indexItem(item, indexWriter);
-	        }
-        } catch (SQLException ex) {
-        	System.out.println(ex);
-        	return;
+	        } 
+	        
+	        indexWriter.close();
+	        connection.close();
         }
-        
-        try {
-			indexWriter.close();
+        catch (SQLException e) 
+        {
+        	e.printStackTrace();
+        	System.out.println(e);
+        } catch (CorruptIndexException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.out.println(e);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			System.out.println(e);
 		}
-        
-        // close the database connection
-        try {
-        	connection.close();
-	    } catch (SQLException ex) {
-	    	System.out.println(ex);
-	    }
     }    
 
     public static void main(String args[]) {
@@ -157,7 +110,12 @@ public class Indexer {
     		concatenatedCategories = concatenatedCategories + item.categories[categoryIndex] + " ";
     	}
     	document.add(new Field("category", concatenatedCategories, Field.Store.NO, Field.Index.TOKENIZED));
-    	document.add(new Field("all", concatenatedCategories + " " + item.name + " " + item.description, Field.Store.NO, Field.Index.TOKENIZED));
+    	/*StringBuilder allBuilder = new StringBuilder(item.name.length() + item.description.length() + concatenatedCategories.length());
+    	allBuilder.append(' ');
+    	allBuilder.append(item.name);
+    	allBuilder.append(' ');
+    	allBuilder.append(item.description);
+    	document.add(new Field("all", allBuilder.toString(), Field.Store.NO, Field.Index.TOKENIZED));*/
     	try {
 			writer.addDocument(document);
 		} catch (CorruptIndexException e) {

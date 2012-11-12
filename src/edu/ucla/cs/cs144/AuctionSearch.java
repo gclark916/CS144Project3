@@ -44,37 +44,21 @@ import edu.ucla.cs.cs144.SearchConstraint;
 import edu.ucla.cs.cs144.SearchResult;
 
 public class AuctionSearch implements IAuctionSearch {
-
-	/* 
-         * You will probably have to use JDBC to access MySQL data
-         * Lucene IndexSearcher class to lookup Lucene index.
-         * Read the corresponding tutorial to learn about how to use these.
-         *
-         * Your code will need to reference the directory which contains your
-	 * Lucene index files.  Make sure to read the environment variable 
-         * $LUCENE_INDEX with System.getenv() to build the appropriate path.
-	 *
-	 * You may create helper functions or classes to simplify writing these
-	 * methods. Make sure that your helper functions are not public,
-         * so that they are not exposed to outside of this class.
-         *
-         * Any new classes that you create should be part of
-         * edu.ucla.cs.cs144 package and their source files should be
-         * placed at src/edu/ucla/cs/cs144.
-         *
-         */
 	
 	public SearchResult[] basicSearch(String query, int numResultsToSkip, 
 			int numResultsToReturn) {
 		SearchResult[] results = new SearchResult[0];
 		
 		try {
-			//String[] fields = {"name", "description", "category"};
-			//MultiFieldQueryParser parser = new MultiFieldQueryParser(fields, new StandardAnalyzer());
-			QueryParser parser = new QueryParser("all", new StandardAnalyzer());
+			String[] fields = {"name", "description", "category"};
+			MultiFieldQueryParser parser = new MultiFieldQueryParser(fields, new StandardAnalyzer());
+			//QueryParser parser = new QueryParser("all", new StandardAnalyzer());
 			Query luceneQuery = parser.parse(query);
 		    results = getSearchResultsForQuery(luceneQuery, numResultsToSkip, numResultsToReturn);
-		} catch (IOException | ParseException e) {
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -215,7 +199,19 @@ public class AuctionSearch implements IAuctionSearch {
 			results = getSearchResultsForQuery(luceneQuery, numResultsToSkip, numResultsToReturn);
 			
 			connection.close();
-		} catch (SQLException | java.text.ParseException | ParseException | IOException e) {
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (CorruptIndexException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (java.text.ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
