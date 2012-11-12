@@ -2,7 +2,6 @@ package edu.ucla.cs.cs144;
 
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -28,9 +27,9 @@ public class Indexer {
 
         Connection connection = null;
 
-        // create a connection to the database to retrieve Items from MySQL
         try 
         {
+        	// create a connection to the database to retrieve Items from MySQL
         	connection = DbManager.getConnection(true);
         	
         	// Map itemIDs to category sets
@@ -110,12 +109,6 @@ public class Indexer {
     		concatenatedCategories = concatenatedCategories + item.categories[categoryIndex] + " ";
     	}
     	document.add(new Field("category", concatenatedCategories, Field.Store.NO, Field.Index.TOKENIZED));
-    	/*StringBuilder allBuilder = new StringBuilder(item.name.length() + item.description.length() + concatenatedCategories.length());
-    	allBuilder.append(' ');
-    	allBuilder.append(item.name);
-    	allBuilder.append(' ');
-    	allBuilder.append(item.description);
-    	document.add(new Field("all", allBuilder.toString(), Field.Store.NO, Field.Index.TOKENIZED));*/
     	try {
 			writer.addDocument(document);
 		} catch (CorruptIndexException e) {

@@ -141,9 +141,9 @@ public class AuctionSearch implements IAuctionSearch {
 			if (bidderID != null)
 			{
 				if (whereClause)
-					SQLQuery = "SELECT item_id FROM (" + itemSelect + ") AS FilteredItem JOIN Bid ON FilteredItem.item_id = Bid.item_id WHERE bidder_id = ?";
+					SQLQuery = "SELECT FilteredItem.item_id FROM (" + itemSelect + ") AS FilteredItem JOIN Bid ON FilteredItem.item_id = Bid.item_id WHERE bidder_id = ?";
 				else
-					SQLQuery = "SELECT item_id FROM Item AS FilteredItem JOIN Bid ON FilteredItem.item_id = Bid.item_id WHERE bidder_id = ?";
+					SQLQuery = "SELECT FilteredItem.item_id FROM Item AS FilteredItem JOIN Bid ON FilteredItem.item_id = Bid.item_id WHERE bidder_id = ?";
 			}
 			else
 			{
@@ -267,7 +267,6 @@ public class AuctionSearch implements IAuctionSearch {
         	bidArray = bids.toArray(bidArray);        		
         	
         	// Get all categories for this item
-        	// TODO:preparedStatement
         	PreparedStatement categoriesStatement = connection.prepareStatement("SELECT name FROM ItemCategory JOIN Category ON ItemCategory.category_id = Category.category_id WHERE item_id = ?");
         	categoriesStatement.setLong(1, itemID);
         	ResultSet categoriesRS = categoriesStatement.executeQuery();

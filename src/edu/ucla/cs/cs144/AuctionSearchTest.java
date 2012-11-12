@@ -1,8 +1,5 @@
 package edu.ucla.cs.cs144;
 
-import java.util.Calendar;
-import java.util.Date;
-
 import edu.ucla.cs.cs144.AuctionSearch;
 import edu.ucla.cs.cs144.SearchResult;
 import edu.ucla.cs.cs144.SearchConstraint;
@@ -80,7 +77,7 @@ public class AuctionSearchTest {
 		}
 		System.out.println();
 		
-		// Advanced
+		// Advanced - ItemName, Category
 		SearchConstraint constraint1 = new SearchConstraint(FieldName.ItemName, "pan");
 		SearchConstraint constraint2 = new SearchConstraint(FieldName.Category, "kitchenware");
 		SearchConstraint[] constraints2 = {constraint1, constraint2};
@@ -92,7 +89,7 @@ public class AuctionSearchTest {
 		}
 		System.out.println();
 		
-		// Advanced
+		// Advanced - SellerID, ItemName
 		SearchConstraint constraint3_1 = new SearchConstraint(FieldName.ItemName, "Precious Moments");
 		SearchConstraint constraint3_2 = new SearchConstraint(FieldName.SellerId, "waltera317a");
 		SearchConstraint[] constraints3 = {constraint3_1, constraint3_2};
@@ -104,10 +101,46 @@ public class AuctionSearchTest {
 		}
 		System.out.println();
 		
-		// Advanced
+		// Advanced - EndTime
 		SearchConstraint constraint4_1 = new SearchConstraint(FieldName.EndTime, "Dec-14-01 21:00:05");
 		SearchConstraint[] constraints4 = {constraint4_1};
 		advancedResults = as.advancedSearch(constraints4, 0, 0);
+		System.out.println("Advanced Search");
+		System.out.println("Received " + advancedResults.length + " results");
+		for(SearchResult result : advancedResults) {
+			System.out.println(result.getItemId() + ": " + result.getName());
+		}
+		System.out.println();
+		
+		// Advanced - Bidder
+		SearchConstraint constraint5_1 = new SearchConstraint(FieldName.BidderId, "danielhb2000");
+		SearchConstraint[] constraints5 = {constraint5_1};
+		advancedResults = as.advancedSearch(constraints5, 0, 0);
+		System.out.println("Advanced Search");
+		System.out.println("Received " + advancedResults.length + " results");
+		for(SearchResult result : advancedResults) {
+			System.out.println(result.getItemId() + ": " + result.getName());
+		}
+		System.out.println();
+		
+		// Advanced - Bidder, Seller
+		SearchConstraint constraint6_1 = new SearchConstraint(FieldName.BidderId, "danielhb2000");
+		SearchConstraint constraint6_2 = new SearchConstraint(FieldName.SellerId, "lwm123");
+		SearchConstraint[] constraints6 = {constraint6_1, constraint6_2};
+		advancedResults = as.advancedSearch(constraints6, 0, 0);
+		System.out.println("Advanced Search");
+		System.out.println("Received " + advancedResults.length + " results");
+		for(SearchResult result : advancedResults) {
+			System.out.println(result.getItemId() + ": " + result.getName());
+		}
+		System.out.println();
+		
+		// Advanced - Bidder, Seller, EndTime
+		SearchConstraint constraint7_1 = new SearchConstraint(FieldName.BidderId, "danielhb2000");
+		SearchConstraint constraint7_2 = new SearchConstraint(FieldName.SellerId, "lwm123");
+		SearchConstraint constraint7_3 = new SearchConstraint(FieldName.EndTime, "Dec-13-01 20:40:07");
+		SearchConstraint[] constraints7 = {constraint7_1, constraint7_2, constraint7_3};
+		advancedResults = as.advancedSearch(constraints7, 0, 0);
 		System.out.println("Advanced Search");
 		System.out.println("Received " + advancedResults.length + " results");
 		for(SearchResult result : advancedResults) {
@@ -126,7 +159,5 @@ public class AuctionSearchTest {
 		System.out.println("XML data for ItemId: " + itemId);
 		System.out.println(item);
 		System.out.println();
-
-		// Add your own test here
 	}
 }
